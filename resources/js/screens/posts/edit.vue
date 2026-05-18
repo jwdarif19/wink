@@ -1,5 +1,6 @@
 <script type="text/ecmascript">
     import FeaturedImageUploader from './FeaturedImageUploader';
+    import SecondaryImageUploader from './SecondaryImageUploader';
     import SEOModal from './../../components/SEOModal';
     import MarkdownEditor from './../../components/MarkdownEditor';
 
@@ -7,6 +8,7 @@
         components: {
             MarkdownEditor,
             'featured-image-uploader': FeaturedImageUploader,
+            'secondary-image-uploader': SecondaryImageUploader,
             'seo-modal': SEOModal,
         },
 
@@ -41,6 +43,7 @@
                     author_id: '',
                     featured_image: '',
                     featured_image_caption: '',
+                    secondary_image: '',
                     body: '',
                     published: false,
                     markdown: ({null: null, 'markdown' : true, 'rich': false})[window.Wink.default_editor],
@@ -69,6 +72,10 @@
             },
 
             'form.featured_image'() {
+                this.save();
+            },
+
+            'form.secondary_image'() {
                 this.save();
             },
 
@@ -157,6 +164,7 @@
                     this.form.author_id = data.author_id || '';
                     this.form.featured_image = data.featured_image;
                     this.form.featured_image_caption = data.featured_image_caption;
+                    this.form.secondary_image = data.secondary_image;
                     this.form.meta = {
                         meta_description: data.meta.meta_description || '',
                         opengraph_title: data.meta.opengraph_title || '',
@@ -277,6 +285,30 @@
             featuredImageRemoved() {
                 this.form.featured_image = null;
                 this.form.featured_image_caption = null;
+            },
+
+
+            /**
+             * Open the secondary image modal.
+             */
+            secondaryImageModal() {
+                this.$emit('openingSecondaryImageUploader');
+            },
+
+
+            /**
+             * Handle the change event of secondary image.
+             */
+            secondaryImageChanged({url}) {
+                this.form.secondary_image = url;
+            },
+
+
+            /**
+             * Handle removal of secondary image.
+             */
+            secondaryImageRemoved() {
+                this.form.secondary_image = null;
             },
 
 
@@ -402,6 +434,9 @@
                         <a href="#" @click.prevent="featuredImageModal" class="no-underline text-text-color hover:text-primary w-full block py-2 px-4">
                             Featured Image
                         </a>
+                        <a href="#" @click.prevent="secondaryImageModal" class="no-underline text-text-color hover:text-primary w-full block py-2 px-4">
+                            Listing Image
+                        </a>
                         <a href="#" @click.prevent="seoModal" class="no-underline text-text-color hover:text-primary w-full block py-2 px-4">
                             SEO & Social
                         </a>
@@ -519,6 +554,12 @@
                                  @removed="featuredImageRemoved"
                                  :current-image-url="form.featured_image"
                                  :current-caption="form.featured_image_caption"></featured-image-uploader>
+
+        <!-- Secondary Image Modal -->
+        <secondary-image-uploader :post-id="this.form.id"
+                                  @changed="secondaryImageChanged"
+                                  @removed="secondaryImageRemoved"
+                                  :current-image-url="form.secondary_image"></secondary-image-uploader>
     </div>
 </template>
 

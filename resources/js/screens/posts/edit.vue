@@ -276,7 +276,7 @@
             loadQuickLinks() {
                 if (this.id === 'new') return;
 
-                this.http().get('/wink/api/posts/' + this.id + '/quick-links').then(response => {
+                this.http().get('/api/posts/' + this.id + '/quick-links').then(response => {
                     this.quickLinks = Array.isArray(response.data.data) ? response.data.data : [];
                 }).catch(() => {
                     this.quickLinks = [];
@@ -293,7 +293,7 @@
                 this.quickLinksSaving = true;
                 this.quickLinksError  = '';
 
-                this.http().post('/wink/api/posts/' + this.id + '/quick-links', {
+                this.http().post('/api/posts/' + this.id + '/quick-links', {
                     label:      this.newLinkLabel,
                     url:        this.newLinkUrl,
                     sort_order: this.newLinkSortOrder,
@@ -314,7 +314,7 @@
              * Remove a quick link.
              */
             removeQuickLink(link) {
-                this.http().delete('/wink/api/posts/' + this.id + '/quick-links/' + link.id).then(response => {
+                this.http().delete('/api/posts/' + this.id + '/quick-links/' + link.id).then(response => {
                     this.quickLinks = Array.isArray(response.data.data) ? response.data.data : [];
                 }).catch(() => {
                     this.quickLinks = [];

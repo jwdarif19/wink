@@ -32,7 +32,8 @@
                 newLinkLabel: '',
                 newLinkUrl: '',
                 newLinkSortOrder: 0,
-                quickLinksStatus: '',
+                quickLinksSaving: false,
+                quickLinksError: '',
 
                 id: this.$route.params.id || 'new',
 
@@ -289,7 +290,8 @@
             addQuickLink() {
                 if (!this.newLinkLabel || !this.newLinkUrl) return;
 
-                this.quickLinksStatus = 'Saving...';
+                this.quickLinksSaving = true;
+                this.quickLinksError  = '';
 
                 this.http().post('/wink/api/posts/' + this.id + '/quick-links', {
                     label:      this.newLinkLabel,
@@ -300,9 +302,10 @@
                     this.newLinkLabel     = '';
                     this.newLinkUrl       = '';
                     this.newLinkSortOrder = 0;
-                    this.quickLinksStatus = '';
+                    this.quickLinksSaving = false;
                 }).catch(() => {
-                    this.quickLinksStatus = 'Failed to save. Please try again.';
+                    this.quickLinksError  = 'Failed to save. Please try again.';
+                    this.quickLinksSaving = false;
                 });
             },
 
@@ -657,9 +660,11 @@
                 <input type="number" class="input" v-model.number="newLinkSortOrder" min="0" />
             </div>
 
-            <div class="mt-6 flex items-center">
-                <button class="btn-sm btn-primary mr-2" @click="addQuickLink" :disabled="quickLinksStatus">
-                    {{ quickLinksStatus || 'Add Link' }}
+            <p v-if="quickLinksError" class="text-red text-sm mt-2 mb-0">{{ quickLinksError }}</p>
+
+            <div class="mt-4 flex items-center">
+                <button class="btn-sm btn-primary mr-2" @click="addQuickLink" :disabled="quickLinksSaving">
+                    {{ quickLinksSaving ? 'Saving...' : 'Add Link' }}
                 </button>
                 <button class="btn-sm btn-light" @click="quickLinksModalShown = false">Done</button>
             </div>

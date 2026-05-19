@@ -27,6 +27,12 @@
                 settingsModalShown: false,
                 publishingModalShown: false,
                 seoModalShown: false,
+                quickLinksModalShown: false,
+                quickLinks: [],
+                newLinkLabel: '',
+                newLinkUrl: '',
+                newLinkSortOrder: 0,
+                quickLinksStatus: '',
 
                 id: this.$route.params.id || 'new',
 
@@ -255,6 +261,61 @@
 
 
             /**
+             * Open the Quick Links modal and load existing links.
+             */
+            quickLinksModal() {
+                this.quickLinksModalShown = true;
+                this.loadQuickLinks();
+            },
+
+
+            /**
+             * Load quick links for this post.
+             */
+            loadQuickLinks() {
+                if (this.id === 'new') return;
+
+                this.http().get('/wink/api/posts/' + this.id + '/quick-links').then(response => {
+                    this.quickLinks = response.data.data;
+                });
+            },
+
+
+            /**
+             * Add a new quick link.
+             */
+            addQuickLink() {
+                if (!this.newLinkLabel || !this.newLinkUrl) return;
+
+                this.quickLinksStatus = 'Saving...';
+
+                this.http().post('/wink/api/posts/' + this.id + '/quick-links', {
+                    label:      this.newLinkLabel,
+                    url:        this.newLinkUrl,
+                    sort_order: this.newLinkSortOrder,
+                }).then(response => {
+                    this.quickLinks     = response.data.data;
+                    this.newLinkLabel   = '';
+                    this.newLinkUrl     = '';
+                    this.newLinkSortOrder = 0;
+                    this.quickLinksStatus = '';
+                }).catch(() => {
+                    this.quickLinksStatus = '';
+                });
+            },
+
+
+            /**
+             * Remove a quick link.
+             */
+            removeQuickLink(link) {
+                this.http().delete('/wink/api/posts/' + this.id + '/quick-links/' + link.id).then(response => {
+                    this.quickLinks = response.data.data;
+                });
+            },
+
+
+            /**
              * Open the publishing modal.
              */
             publishingModal() {
@@ -440,6 +501,9 @@
                         <a href="#" @click.prevent="seoModal" class="no-underline text-text-color hover:text-primary w-full block py-2 px-4">
                             SEO & Social
                         </a>
+                        <a href="#" @click.prevent="quickLinksModal" class="no-underline text-text-color hover:text-primary w-full block py-2 px-4" v-if="id != 'new'">
+                            Quick Links
+                        </a>
                         <a href="#" @click.prevent="deletePost" class="no-underline text-red w-full block py-2 px-4" v-if="id != 'new'">Delete</a>
                     </div>
                 </dropdown>
@@ -554,6 +618,48 @@
                                  @removed="featuredImageRemoved"
                                  :current-image-url="form.featured_image"
                                  :current-caption="form.featured_image_caption"></featured-image-uploader>
+
+        <!-- Quick Links Modal -->
+        <modal v-if="quickLinksModalShown" @close="quickLinksModalShown = false">
+            <h3 class="font-semibold text-lg mb-6">Quick Links</h3>
+
+            <!-- Existing links -->
+            <div v-if="quickLinks.length" class="mb-6">
+                <div v-for="link in quickLinks" :key="link.id"
+                     class="flex items-center justify-between py-2 border-b border-lighter">
+                    <div class="flex-1 min-w-0 mr-4">
+                        <div class="font-medium text-sm truncate">{{ link.label }}</div>
+                        <div class="text-xs text-light truncate">{{ link.url }}</div>
+                    </div>
+                    <button @click="removeQuickLink(link)"
+                            class="text-red text-sm hover:opacity-75 flex-shrink-0">
+                        Remove
+                    </button>
+                </div>
+            </div>
+            <p v-else class="text-light text-sm mb-6">No quick links yet. Add one below.</p>
+
+            <!-- Add new link -->
+            <div class="input-group pt-0">
+                <label class="input-label">Label</label>
+                <input type="text" class="input" v-model="newLinkLabel" placeholder="e.g. Browse Jobs" maxlength="120" />
+            </div>
+            <div class="input-group">
+                <label class="input-label">URL</label>
+                <input type="text" class="input" v-model="newLinkUrl" placeholder="e.g. /jobs or https://example.com" maxlength="500" />
+            </div>
+            <div class="input-group">
+                <label class="input-label">Sort Order</label>
+                <input type="number" class="input" v-model.number="newLinkSortOrder" min="0" />
+            </div>
+
+            <div class="mt-6 flex items-center">
+                <button class="btn-sm btn-primary mr-2" @click="addQuickLink" :disabled="quickLinksStatus">
+                    {{ quickLinksStatus || 'Add Link' }}
+                </button>
+                <button class="btn-sm btn-light" @click="quickLinksModalShown = false">Done</button>
+            </div>
+        </modal>
 
         <!-- Secondary Image Modal -->
         <secondary-image-uploader :post-id="this.form.id"

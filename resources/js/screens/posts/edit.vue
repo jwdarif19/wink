@@ -276,7 +276,9 @@
                 if (this.id === 'new') return;
 
                 this.http().get('/wink/api/posts/' + this.id + '/quick-links').then(response => {
-                    this.quickLinks = response.data.data;
+                    this.quickLinks = Array.isArray(response.data.data) ? response.data.data : [];
+                }).catch(() => {
+                    this.quickLinks = [];
                 });
             },
 
@@ -294,13 +296,13 @@
                     url:        this.newLinkUrl,
                     sort_order: this.newLinkSortOrder,
                 }).then(response => {
-                    this.quickLinks     = response.data.data;
-                    this.newLinkLabel   = '';
-                    this.newLinkUrl     = '';
+                    this.quickLinks       = Array.isArray(response.data.data) ? response.data.data : [];
+                    this.newLinkLabel     = '';
+                    this.newLinkUrl       = '';
                     this.newLinkSortOrder = 0;
                     this.quickLinksStatus = '';
                 }).catch(() => {
-                    this.quickLinksStatus = '';
+                    this.quickLinksStatus = 'Failed to save. Please try again.';
                 });
             },
 
@@ -310,7 +312,9 @@
              */
             removeQuickLink(link) {
                 this.http().delete('/wink/api/posts/' + this.id + '/quick-links/' + link.id).then(response => {
-                    this.quickLinks = response.data.data;
+                    this.quickLinks = Array.isArray(response.data.data) ? response.data.data : [];
+                }).catch(() => {
+                    this.quickLinks = [];
                 });
             },
 

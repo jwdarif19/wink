@@ -29,6 +29,7 @@
                 seoModalShown: false,
                 quickLinksModalShown: false,
                 quickLinks: [],
+                quickLinksLoading: false,
                 newLinkLabel: '',
                 newLinkUrl: '',
                 newLinkSortOrder: 0,
@@ -266,7 +267,7 @@
              */
             quickLinksModal() {
                 this.quickLinksModalShown = true;
-                this.loadQuickLinks();
+                this.$nextTick(() => this.loadQuickLinks());
             },
 
 
@@ -276,10 +277,18 @@
             loadQuickLinks() {
                 if (this.id === 'new') return;
 
+                this.quickLinksLoading = true;
+                this.quickLinksError   = '';
+
                 this.http().get('/api/posts/' + this.id + '/quick-links').then(response => {
-                    this.quickLinks = Array.isArray(response.data.data) ? response.data.data : [];
-                }).catch(() => {
-                    this.quickLinks = [];
+                    this.quickLinks        = Array.isArray(response.data.data) ? response.data.data : [];
+                    this.quickLinksLoading = false;
+                }).catch(error => {
+                    this.quickLinksLoading = false;
+                    const status = error && error.response && error.response.status;
+                    this.quickLinksError = status
+                        ? 'Could not load links (HTTP ' + status + ').'
+                        : 'Could not load links. Please try again.';
                 });
             },
 
@@ -629,6 +638,9 @@
         <!-- Quick Links Modal -->
         <modal v-if="quickLinksModalShown" @close="quickLinksModalShown = false">
             <h3 class="font-semibold text-lg mb-6">Quick Links</h3>
+
+            <!-- Loading state -->
+            <div v-if="quickLinksLoading" class="mb-4 text-sm text-gray-500">Loading links…</div>
 
             <!-- Existing links -->
             <div v-if="quickLinks.length" class="mb-6">

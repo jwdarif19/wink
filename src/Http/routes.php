@@ -4,6 +4,7 @@ use Wink\Http\Controllers\ImageUploadsController;
 use Wink\Http\Controllers\LoginController;
 use Wink\Http\Controllers\PagesController;
 use Wink\Http\Controllers\PostsController;
+use Wink\Http\Controllers\QuickLinksController;
 use Wink\Http\Controllers\SPAViewController;
 use Wink\Http\Controllers\TagsController;
 use Wink\Http\Controllers\TeamController;
@@ -37,6 +38,11 @@ Route::delete('/api/pages/{id}', [PagesController::class, 'delete'])->name('page
 
 // Logout Route...
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
+
+// Blog Post Quick Links — must be registered before the catch-all so GET requests are not swallowed by the SPA view.
+Route::get('/api/posts/{id}/quick-links', [QuickLinksController::class, 'index'])->name('quick-links.index');
+Route::post('/api/posts/{id}/quick-links', [QuickLinksController::class, 'store'])->name('quick-links.store');
+Route::delete('/api/posts/{id}/quick-links/{linkId}', [QuickLinksController::class, 'destroy'])->name('quick-links.destroy');
 
 // Catch-all Route...
 Route::get('/{view?}', SPAViewController::class)->name('spa')->where('view', '(.*)');
